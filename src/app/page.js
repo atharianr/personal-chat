@@ -1,103 +1,109 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import ChatBox from "./components/ChatBox";
+import ChatBubble from "./components/ChatBubble";
+import { sendMessage } from "./services/chat-service";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [chatHistoryList, setChatHistoryList] = useState([]);
+  const [secret, setSecret] = useState("")
+  const [isLoadingResponse, setIsLoadingResponse] = useState(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // 👇 create ref to the bottom
+  const bottomRef = useRef(null);
+
+  // const handleChatSubmit = (newMessage: string) => {
+  //   setChatHistoryList((prev) => [
+  //     ...prev,
+  //     { type: "sender", content: newMessage },
+  //     { type: "bot", content: "Saya menerima pesanmu!" }
+  //   ]);
+  // };
+
+  const handleChatSubmit = async (newMessage) => {
+    setChatHistoryList((prev) => [
+      ...prev,
+      { type: "sender", content: newMessage },
+    ]);
+
+    try {
+      setIsLoadingResponse(true)
+      const response = await sendMessage(newMessage).finally(() => {
+        setIsLoadingResponse(false)
+      });
+      setChatHistoryList((prev) => [
+        ...prev,
+        // { type: "sender", content: response.input },
+        { type: "bot", content: response.response }
+      ]);
+    } catch (error) {
+      console.error("Failed to get bot reply", error);
+      setChatHistoryList((prev) => [
+        ...prev,
+        { type: "bot", content: "Sorry, there was an error processing your message." }
+      ]);
+    }
+  };
+
+  // 👇 scroll to bottom on chat update
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistoryList]);
+
+  const handleSecretSubmit = (event) => {
+    event.preventDefault();
+    if (secret === "nairahta") {
+      setSecret("nairahta");
+    } else {
+      alert("Invalid secret!");
+    }
+  };
+
+  // 👇 Show secret input popup if not authenticated
+  if (secret !== "nairahta") {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black/60">
+        <form
+          onSubmit={handleSecretSubmit}
+          className="bg-white p-6 rounded-xl shadow-xl w-80 space-y-4"
+        >
+          <h2 className="text-lg font-semibold text-center">Bla bla bla!</h2>
+          <input
+            type="password"
+            value={secret}
+            onChange={(e) => setSecret(e.target.value)}
+            placeholder="Enter here..."
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="w-full bg-black text-white py-2 rounded hover:bg-black/80 transition"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Submit
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-end h-screen justify-between">
+      <div className="overflow-y-auto w-full">
+        <div className="flex flex-col  mx-auto pt-4 max-w-2xl w-full">
+          {chatHistoryList.map((data, index) => {
+            return <ChatBubble chat={data} key={index} />
+          })}
+          <ChatBubble chat={{ type: "bot", content: "Generating response..." }} className={`${isLoadingResponse ? 'visible' : 'invisible'}`} />
+          {/* <p className={`${isLoadingResponse ? 'visible' : 'invisible'}`}>Generating response...</p> */}
+          {/* Invisible anchor to scroll to */}
+          <div ref={bottomRef} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+      <div className="max-w-2xl w-full bottom-0 mb-2 self-center">
+        <ChatBox onChatSubmit={handleChatSubmit} />
+      </div>
     </div>
   );
 }
