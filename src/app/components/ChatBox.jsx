@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 
-const ChatBox = ({ onChatSubmit }) => {
+export default function ChatBox({ onChatSubmit }) {
     const textareaRef = useRef(null);
 
     const onSubmit = async (event) => {
@@ -10,8 +10,6 @@ const ChatBox = ({ onChatSubmit }) => {
 
         // Prevent submission if empty or only whitespace/newlines
         if (!message) return;
-
-        console.log("Submitted message:", message);
 
         console.log('Submitted message:', message);
 
@@ -49,7 +47,7 @@ const ChatBox = ({ onChatSubmit }) => {
     };
 
     return (
-        <div className='bg-white border-[0.5px] border-gray-400 rounded-3xl overflow-hidden'>
+        <div className='bg-white border-[0.5px] border-gray-300 shadow-2xl rounded-3xl overflow-hidden'>
             <form onSubmit={onSubmit}>
                 <textarea
                     ref={textareaRef}
@@ -73,10 +71,8 @@ const ChatBox = ({ onChatSubmit }) => {
 
                 <div className="bg-gray-400 h-[0.5px] w-full"></div>
 
-                <button type='submit' className=' flex py-3 px-8 my-3 mx-3 w-max bg-black text-white rounded-2xl hover:bg-black/80 duration-500 ml-auto'>Submit now</button>
+                <button type='submit' className='flex py-3 px-8 my-3 mx-3 w-max bg-black text-white rounded-2xl hover:bg-black/80 duration-500 ml-auto cursor-pointer'>Submit now</button>
             </form>
         </div>
     )
 }
-
-export default ChatBox;

@@ -2,11 +2,10 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-const ChatBubble = ({ chat, className }) => {
+export default function ChatBubble({ chat, className }) {
     return (
-        <div className={`max-w-full w-fit ${chat.type == "sender" ? 'self-end ml-16 mr-4 rounded-tr-none bg-gray-700' : 'mr-16 ml-4 rounded-tl-none bg-black'} rounded-2xl py-2 px-4 shadow-lg mb-4 text-white ${className}`}>
+        <div className={`flex flex-col max-w-full whitespace-pre-wrap ${chat.type == "user" ? 'self-end ml-16 rounded-tr-none bg-gray-700' : 'self-start mr-16 rounded-tl-none bg-black'} rounded-2xl py-2 px-4 shadow-lg mb-4 text-white ${className}`}>
             <ReactMarkdown
-                // className="prose prose-invert max-w-none"
                 components={{
                     code({ className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || "");
@@ -16,6 +15,7 @@ const ChatBubble = ({ chat, className }) => {
                                 style={oneDark}
                                 PreTag="div"
                                 {...props}
+                                className={`${className}`}
                             >
                                 {String(children).replace(/\n$/, "")}
                             </SyntaxHighlighter>
@@ -30,5 +30,3 @@ const ChatBubble = ({ chat, className }) => {
         </div>
     )
 }
-
-export default ChatBubble;
